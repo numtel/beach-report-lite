@@ -45,8 +45,8 @@ class BeachReportServer extends EventEmitter {
     super();
 
     const app = this.server = express();
-    app.use(enforce.HTTPS());
-    enforceHttps && app.use(express.urlencoded({ extended: true }));
+    enforceHttps && app.use(enforce.HTTPS());
+    app.use(express.urlencoded({ extended: true }));
     app.engine('html', ejs.renderFile);
     app.set('view engine', 'html');
     app.set('views', __dirname);
