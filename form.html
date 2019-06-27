@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Beach Water Quality</title>
+    <style>
+      body { margin: 30px auto; max-width: 500px; padding: 0 10px; font-family:sans-serif; }
+      table { width: 100%; }
+      tfoot td { padding-top: 10px; text-align: center; }
+      tfoot button { padding: 10px; }
+      input, select { max-width: 100%; }
+    </style>
+  <body>
+    <form method="POST" border="1">
+      <h1>Beach Water Quality</h1>
+      <fieldset>
+        <legend>US West Coast Beaches</legend>
+        <table>
+          <tbody>
+            <tr>
+              <td><label for="lat_sel">Location</label></td>
+              <td>
+                <select id="lat_sel"
+                    onclick="event.target.form.lat.value = event.target.value"
+                    onchange="event.target.form.lat.value = event.target.value">
+                  <option value="">Specify latitude</option>
+                  <option value="40.7">Eureka</option>
+                  <option value="38.5">Fort Ross</option>
+                  <option value="37.7">San Francisco</option>
+                  <option value="36.9">Santa Cruz</option>
+                  <option value="35.1">Pismo Beach</option>
+                  <option value="34.3">Santa Barbara</option>
+                  <option value="34.0">Santa Monica</option>
+                  <option value="33.6">Huntington Beach</option>
+                  <option value="33.4">San Clemente</option>
+                  <option value="32.8">San Diego</option>
+                </select>
+              </td>
+            </tr>
+            <tr>
+              <td><label for="lat">Latitude</label></td>
+              <td>
+                <input id="lat" name="lat" required type="number" min="-90" max="90" step="0.1"
+                  onchange="event.target.form.lat_sel.value = ''" />
+                <button type="button" onclick="setLatToMe(event.target.form)">Use my location</button>
+              </td>
+            </tr>
+            <tr>
+              <td><label for="range">Range (miles)</label></td>
+              <td>
+                <input id="range_val" required value="20" type="number" min="5" max="100" step="1"
+                  onchange="event.target.form.range.value = event.target.value" />
+                <input id="range" name="range" required value="20" type="range" min="5" max="100" step="1"
+                  onchange="event.target.form.range_val.value = event.target.value" />
+              </td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <td colspan="2">
+                <button type="submit">Search</button>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </fieldset>
+    </form>
+    <script>
+      function setLatToLoc(sel) {
+        sel.form.lat.value = sel.value;
+      }
+      function setLatToMe(form) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+          form.lat.value = Math.round(position.coords.latitude * 10) / 10;
+          form.lat_sel.value = '';
+        });
+      }
+    </script>
+  </body>
+</html>

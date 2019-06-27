@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Beach Report Card</title>
+    <style>
+      body { margin: 30px auto; max-width: 700px; padding: 0 10px; font-family:sans-serif; }
+      table { width: 100%; }
+      thead td { font-weight: bold; border-bottom: 1px solid #ccc; }
+      tbody tr:nth-child(even) { background-color: #f5f5f5; }
+    </style>
+  <body>
+    <h1><%= data.title %></h1>
+    <p><%= data.description %></p>
+    <dl>
+      <dt>Address</dt>
+      <dd><%= [data.address, data.city, data.state, data.zip].filter(x=>!!x).join(', ') %></dd>
+      <dt>Coordinates</dt>
+      <dd><%= data.geo.map(x=>parseFloat(x)).join(', ') %></dd>
+      <dt>Factors Affecting Water</dt>
+      <dd><%= data.factorsAffectingWater || 'N/A' %></dd>
+      <dt>Type</dt>
+      <dd><%= data.type || 'N/A' %></dd>
+      <dt>Updated</dt>
+      <dd><%= (new Date(data.grade_updated)).toLocaleString() %></dd>
+      <dt>Grade Note</dt>
+      <dd><%= data.grade_node || 'N/A' %></dd>
+      <dt>Dry Weather Grade</dt>
+      <dd><%= data.dry_grade || 'N/A' %></dd>
+      <dt>Wet Weather Grade</dt>
+      <dd><%= data.wet_grade || 'N/A' %></dd>
+    </dl>
+  </body>
+</html>
