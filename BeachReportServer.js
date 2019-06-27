@@ -51,6 +51,11 @@ class BeachReportServer extends EventEmitter {
 
     this.dataPromise = fetchRawReport();
 
+    // Refresh data every 3 hours
+    setInterval(() => {
+      this.dataPromise = fetchRawReport();
+    }, 3*60*60*1000);
+
     app.listen(port, error => error && this.emit('error', error));
 
     app.get('/', (req, res) => {
