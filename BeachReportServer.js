@@ -1,7 +1,6 @@
 const EventEmitter = require('events');
 const request = require('request-promise-native');
 const express = require('express');
-const enforce = require('express-sslify');
 const ejs = require('ejs');
 const ago = require('s-ago').default;
 
@@ -40,12 +39,24 @@ function displayGrades(locations, searchLat, searchRange) {
   return out;
 }
 
+function redirectHttps(req, res, next) {
+  if (process.env.NODE_ENV === 'production') {
+    if (req.headers['x-forwarded-proto'] != 'https') {
+      return res.redirect('https://' + req.headers.host + req.url);
+    } else {
+      return next();
+    }
+  } else {
+    return next();
+  }
+}
+
 class BeachReportServer extends EventEmitter {
   constructor(port = 3000, enforceHttps = false) {
     super();
 
     const app = this.server = express();
-    enforceHttps && app.use(enforce.HTTPS());
+    enforceHttps && app.use(redirectHttps);
     app.use(express.urlencoded({ extended: true }));
     app.engine('html', ejs.renderFile);
     app.set('view engine', 'html');
