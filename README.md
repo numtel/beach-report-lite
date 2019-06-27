@@ -30,6 +30,8 @@ In the case of the "Use my location" button, the method is a bit too verbose to 
 
 While, of course, the results table is rendered using an HTML `<table>` element, the form's fieldset is as well, in order to provide a columnar layout between the field labels and the fields themselves. This is the simplest way to ensure that the input fields line up vertically in a column.
 
+When printing the search results, the header row on the table is repeated if the results span more than one page.
+
 ### HTML input validation attributes
 
 ```html
