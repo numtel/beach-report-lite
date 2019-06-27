@@ -1,6 +1,7 @@
 const EventEmitter = require('events');
 const request = require('request-promise-native');
 const express = require('express');
+const enforce = require('express-sslify');
 const ejs = require('ejs');
 const ago = require('s-ago').default;
 
@@ -40,11 +41,12 @@ function displayGrades(locations, searchLat, searchRange) {
 }
 
 class BeachReportServer extends EventEmitter {
-  constructor(port = 3000) {
+  constructor(port = 3000, enforceHttps = false) {
     super();
 
     const app = this.server = express();
-    app.use(express.urlencoded({ extended: true }));
+    app.use(enforce.HTTPS());
+    enforceHttps && app.use(express.urlencoded({ extended: true }));
     app.engine('html', ejs.renderFile);
     app.set('view engine', 'html');
     app.set('views', __dirname);
