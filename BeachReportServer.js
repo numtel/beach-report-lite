@@ -22,8 +22,6 @@ module.exports = class BeachReportServer extends EventEmitter {
 
     // Load initial dataset
     this.fetchData();
-    // Refresh data every 3 hours
-    setInterval(() => this.fetchData(), 3*60*60*1000);
 
     // Application routes
     app.get('/', async function(req, res) {
