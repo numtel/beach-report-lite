@@ -8,6 +8,63 @@ const sortKey = loc => loc._source.northSouthOrder;
 const validGrade = grade => typeof grade === 'string'
                          && grade.match(/^[A-F][+-]?$/);
 
+module.exports = class BeachReportServer extends EventEmitter {
+  constructor(port = 3000, enforceHttps = false) {
+    super();
+
+    const app = express();
+    enforceHttps && app.use(redirectHttps);
+    app.use(express.urlencoded({ extended: true }));
+    app.engine('html', ejs.renderFile);
+    app.set('view engine', 'html');
+    app.set('views', __dirname);
+    app.listen(port, error => error && this.emit('error', error));
+
+    // Load initial dataset
+    this.fetchData();
+    // Refresh data every 3 hours
+    setInterval(() => this.fetchData(), 3*60*60*1000);
+
+    // Application routes
+    app.get('/', (req, res) => {
+      res.render('form');
+    });
+
+    app.post('/', async function(req, res) {
+      if(!req.body.lat || !req.body.range) {
+        res.status(400).send('lat_and_range_required');
+        return;
+      }
+
+      const lat = parseFloat(req.body.lat);
+      // Convert miles to degrees latitude
+      const range = parseFloat(req.body.range) / 69;
+
+      const slice = displayGrades(await this.dataPromise, lat, range);
+      res.render('output', { data: slice });
+    }.bind(this));
+
+    app.get('/detail/:id', async function(req, res) {
+      const data = await this.dataPromise;
+      const id = parseInt(req.params.id, 10);
+      if(isNaN(id)) {
+        res.status(400).send('invalid_location_id');
+        return;
+      }
+      const loc = data.find(loc => loc._source.id === id);
+      if(!loc) {
+        res.status(404).send('location_not_found');
+        return;
+      }
+
+      res.render('detail', { data: loc._source });
+    }.bind(this));
+  }
+  fetchData() {
+    this.dataPromise = fetchRawReport();
+  }
+}
+
 async function fetchRawReport() {
   let locations = await request('https://admin.beachreportcard.org/api/locations/', {
     json: true,
@@ -51,60 +108,3 @@ function redirectHttps(req, res, next) {
   }
 }
 
-class BeachReportServer extends EventEmitter {
-  constructor(port = 3000, enforceHttps = false) {
-    super();
-
-    const app = this.server = express();
-    enforceHttps && app.use(redirectHttps);
-    app.use(express.urlencoded({ extended: true }));
-    app.engine('html', ejs.renderFile);
-    app.set('view engine', 'html');
-    app.set('views', __dirname);
-
-    this.dataPromise = fetchRawReport();
-
-    // Refresh data every 3 hours
-    setInterval(() => {
-      this.dataPromise = fetchRawReport();
-    }, 3*60*60*1000);
-
-    app.listen(port, error => error && this.emit('error', error));
-
-    app.get('/', (req, res) => {
-      res.render('form');
-    });
-
-    app.post('/', async function(req, res) {
-      if(!req.body.lat || !req.body.range) {
-        res.status(400).send('lat_and_range_required');
-        return;
-      }
-
-      const lat = parseFloat(req.body.lat);
-      // Convert miles to degrees latitude
-      const range = parseFloat(req.body.range) / 69;
-
-      const slice = displayGrades(await this.dataPromise, lat, range);
-      res.render('output', { data: slice });
-    }.bind(this));
-
-    app.get('/detail/:id', async function(req, res) {
-      const data = await this.dataPromise;
-      const id = parseInt(req.params.id, 10);
-      if(isNaN(id)) {
-        res.status(400).send('invalid_location_id');
-        return;
-      }
-      const loc = data.find(loc => loc._source.id === id);
-      if(!loc) {
-        res.status(404).send('location_not_found');
-        return;
-      }
-
-      res.render('detail', { data: loc._source });
-    }.bind(this));
-  }
-}
-
-module.exports = BeachReportServer;

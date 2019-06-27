@@ -68,9 +68,6 @@
       </fieldset>
     </form>
     <script>
-      function setLatToLoc(sel) {
-        sel.form.lat.value = sel.value;
-      }
       function setLatToMe(form) {
         navigator.geolocation.getCurrentPosition(function(position) {
           form.lat.value = Math.round(position.coords.latitude * 10) / 10;
