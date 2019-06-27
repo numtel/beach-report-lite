@@ -26,22 +26,17 @@ module.exports = class BeachReportServer extends EventEmitter {
     setInterval(() => this.fetchData(), 3*60*60*1000);
 
     // Application routes
-    app.get('/', (req, res) => {
-      res.render('form');
-    });
+    app.get('/', async function(req, res) {
+      let lat, range = 20, data;
 
-    app.post('/', async function(req, res) {
-      if(!req.body.lat || !req.body.range) {
-        res.status(400).send('lat_and_range_required');
-        return;
+      if(typeof req.query.lat === 'string' && typeof req.query.range === 'string') {
+        lat = parseFloat(req.query.lat);
+        range = parseFloat(req.query.range);
+        // Convert miles to degrees latitude
+        data = displayGrades(await this.dataPromise, lat, range / 69);
       }
 
-      const lat = parseFloat(req.body.lat);
-      // Convert miles to degrees latitude
-      const range = parseFloat(req.body.range) / 69;
-
-      const slice = displayGrades(await this.dataPromise, lat, range);
-      res.render('output', { data: slice });
+      res.render('index', { lat, range, data });
     }.bind(this));
 
     app.get('/detail/:id', async function(req, res) {
