@@ -1,14 +1,14 @@
 {
-  "name": "beachreportcard",
+  "name": "beach-report-lite",
   "version": "1.0.0",
-  "description": "",
+  "description": "Lightweight version of beachreportcard.org",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "numtel <ben@latenightsketches.com>",
+  "license": "MIT",
   "dependencies": {
     "ejs": "^2.6.2",
     "express": "^4.17.1",

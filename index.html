@@ -75,7 +75,9 @@
       </fieldset>
       <script>
         // Set select value after form submission
-        document.forms[0].lat_sel.value = '<%= lat %>';
+        // since setting the element's value attribute does not change the
+        // displayed value
+        document.forms[0].lat_sel.value = document.forms[0].lat.value;
         if(document.forms[0].lat_sel.value === '') {
           // There was no match, is custom latitude
           document.forms[0].lat_sel.value = '';
