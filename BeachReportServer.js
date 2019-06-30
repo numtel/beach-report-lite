@@ -1,67 +1,105 @@
-const EventEmitter = require('events');
-const request = require('request-promise-native');
-const express = require('express');
-const ejs = require('ejs');
-const ago = require('s-ago').default;
+const http = require('http');
+const https = require('https');
+const Template = require('./Template');
 
+// Instantiate outside of server constructor for parser errors on init
+const VIEWS = {
+  index: new Template('index.html'),
+  detail: new Template('detail.html'),
+};
+
+// Data handling helpers
 const sortKey = loc => loc._source.northSouthOrder;
 const validGrade = grade => typeof grade === 'string'
                          && grade.match(/^[A-F][+-]?$/);
 
-module.exports = class BeachReportServer extends EventEmitter {
-  constructor(port = 3000, enforceHttps = false) {
-    super();
-
-    const app = express();
-    enforceHttps && app.use(redirectHttps);
-    app.use(express.urlencoded({ extended: true }));
-    app.engine('html', ejs.renderFile);
-    app.set('view engine', 'html');
-    app.set('views', __dirname);
-    app.listen(port, error => error && this.emit('error', error));
-
-    // Load initial dataset
-    this.fetchData();
-
-    // Application routes
-    app.get('/', async function(req, res) {
-      let lat, range = 20, data;
-
-      if(typeof req.query.lat === 'string' && typeof req.query.range === 'string') {
-        lat = parseFloat(req.query.lat);
-        range = parseFloat(req.query.range);
-        // Convert miles to degrees latitude
-        data = displayGrades(await this.dataPromise, lat, range / 69);
-      }
-
-      res.render('index', { lat, range, data });
-    }.bind(this));
-
-    app.get('/detail/:id', async function(req, res) {
-      const data = await this.dataPromise;
-      const id = parseInt(req.params.id, 10);
-      if(isNaN(id)) {
-        res.status(400).send('invalid_location_id');
-        return;
-      }
-      const loc = data.find(loc => loc._source.id === id);
-      if(!loc) {
-        res.status(404).send('location_not_found');
-        return;
-      }
-
-      res.render('detail', { data: loc._source });
-    }.bind(this));
-  }
-  fetchData() {
-    this.dataPromise = fetchRawReport();
+class ReqError extends Error {
+  constructor(code, msg) {
+    super(msg);
+    this.httpCode = code;
   }
 }
 
-async function fetchRawReport() {
-  let locations = await request('https://admin.beachreportcard.org/api/locations/', {
-    json: true,
-  });
+module.exports = class BeachReportServer extends http.Server {
+  constructor(enforceHttps = false) {
+    super(requestListener);
+    this.enforceHttps = enforceHttps;
+    this.dataPromise = null;
+    this.routes = [
+      [ /^\/$/, this.index ],
+      [ /^\/detail\/([\d]+)$/, this.detail ],
+    ];
+
+    this.load();
+  }
+  load() {
+    this.dataPromise = fetchData();
+  }
+  async index(req) {
+    const query = parseQuery(req.url);
+    let lat, range = 20, data;
+
+    if(typeof query.lat === 'string' && typeof query.range === 'string') {
+      lat = parseFloat(query.lat);
+      range = parseFloat(query.range);
+      // Convert miles to degrees latitude
+      data = displayGrades(await this.dataPromise, lat, range / 69);
+    }
+    return VIEWS.index.render({ lat, range, data });
+  }
+  async detail(req, urlMatch) {
+    const data = await this.dataPromise;
+    const id = parseInt(urlMatch[1], 10);
+    if(isNaN(id))
+      throw new ReqError(400, 'Invalid Location ID');
+
+    const loc = data.find(loc => loc._source.id === id);
+    if(!loc)
+      throw new ReqError(404, 'Location not found');
+
+    return VIEWS.detail.render({ data: loc._source });
+  }
+}
+
+// http.Server superclass binds invocations to the server instance
+async function requestListener(req, res) {
+  if(this.enforceHttps && req.headers['x-forwarded-proto'] !== 'https') {
+    res.writeHead(302, {'location': 'https://' + req.headers.host + req.url});
+    res.end();
+    return;
+  }
+
+  const qsStart = req.url.indexOf('?');
+  const urlWithoutQs = qsStart === -1 ? req.url : req.url.substr(0, qsStart);
+
+  for(let i = 0; i<this.routes.length; i++) {
+    const urlMatch = urlWithoutQs.match(this.routes[i][0]);
+    if(!urlMatch) continue;
+
+    let result;
+    try {
+      result = await this.routes[i][1].call(this, req, urlMatch);
+    } catch(error) {
+      if(error instanceof ReqError) {
+        res.writeHead(error.httpCode, {'Content-Type': 'text/plain'});
+        res.end(error.message);
+      } else {
+        console.error(error);
+        res.writeHead(500, {'Content-Type': 'text/plain'});
+        res.end('Internal Server Error');
+      }
+      return;
+    }
+    res.writeHead(200, {'Content-Type': 'text/html'});
+    res.end(result);
+    return;
+  }
+  res.writeHead(404, {'Content-Type': 'text/plain'});
+  res.end('Not Found');
+}
+
+async function fetchData() {
+  let locations = await fetchJson('https://admin.beachreportcard.org/api/locations/');
   // Remove data points that don't have the proper key
   locations = locations.filter(x => typeof sortKey(x) === 'number');
   // Don't worry, none should have the exact same latitude
@@ -89,9 +127,78 @@ function displayGrades(locations, searchLat, searchRange) {
   return out;
 }
 
-function redirectHttps(req, res, next) {
-  if(req.headers['x-forwarded-proto'] !== 'https')
-    res.redirect('https://' + req.headers.host + req.url);
-  else next();
+// Adapted from https://stackoverflow.com/a/13419367
+function parseQuery(url) {
+  const query = {};
+
+  const qsStart = url.indexOf('?');
+  if(qsStart === -1)
+    return query;
+  const queryString = url.substr(qsStart + 1);
+
+  const pairs = queryString.split('&');
+  for(let i = 0; i < pairs.length; i++) {
+    let pair = pairs[i].split('=', 2);
+    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
+  }
+  return query;
+}
+
+// Adapted from Node.js http documentation
+function fetchJson(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      const contentType = res.headers['content-type'];
+
+      let error;
+      if(res.statusCode !== 200) {
+        error = new Error('Request Failed.\n' +
+                          'Status Code: ' + res.statusCode);
+      } else if (!/^application\/json/.test(contentType)) {
+        error = new Error('Invalid content-type.\n' +
+                          'Expected application/json but received ' + contentType);
+      }
+      if (error) {
+        reject(error);
+        // Consume response data to free up memory
+        res.resume();
+        return;
+      }
+
+      res.setEncoding('utf8');
+      let rawData = '';
+      res.on('data', (chunk) => { rawData += chunk; });
+      res.on('end', () => {
+        try {
+          const parsedData = JSON.parse(rawData);
+          resolve(parsedData);
+        } catch (e) {
+          reject(e.message);
+        }
+      });
+    }).on('error', (e) => {
+      reject(e);
+    });
+  });
+}
+
+// Adapted from s-ago NPM module
+function ago(date) {
+  const units = [
+    { max: 2760000, value: 60000, name: 'minute', prev: 'just now' },
+    { max: 72000000, value: 3600000, name: 'hour', prev: 'an hour ago' },
+    { max: 518400000, value: 86400000, name: 'day', prev: 'yesterday' },
+    { max: 2419200000, value: 604800000, name: 'week', prev: 'last week' },
+    { max: 28512000000, value: 2592000000, name: 'month', prev: 'last month' },
+    { max: Infinity, value: 31536000000, name: 'year', prev: 'last year' },
+  ];
+
+  const diff = Math.abs(Date.now() - date.getTime());
+  for (let i = 0; i < units.length; i++) {
+    if (diff < units[i].max) {
+      const val = Math.round(diff / units[i].value);
+      return val <= 1 ? units[i].prev : val + ' ' + units[i].name + 's ago';
+    }
+  }
 }
 

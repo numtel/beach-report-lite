@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title><%= data.title %> - Beach Water Quality</title>
+    <title>##= data.title ## - Beach Water Quality</title>
     <style>
       body { margin: 30px auto; max-width: 700px; padding: 0 10px; font-family:sans-serif; }
       table { width: 100%; }
@@ -12,30 +12,30 @@
       tbody tr:nth-child(even) { background-color: #f5f5f5; }
     </style>
   <body>
-    <h1><%= data.title %></h1>
-    <p><%= data.description %></p>
+    <h1>##= data.title ##</h1>
+    <p>##= data.description ##</p>
     <dl>
       <dt>Address</dt>
-      <dd><%= [data.address, data.city, data.state, data.zip].filter(x=>!!x).join(', ') %></dd>
+      <dd>##= [data.address, data.city, data.state, data.zip].filter(x=>!!x).join(', ') ##</dd>
       <dt>Coordinates</dt>
       <dd>
-        <a href="https://www.google.com/maps/search/<%= data.geo.map(x=>parseFloat(x)).join(',') %>"
+        <a href="https://www.google.com/maps/search/##= data.geo.map(x=>parseFloat(x)).join(',') ##"
            title="View Location in Google Maps">
-          <%= data.geo.map(x=>parseFloat(x)).join(', ') %>
+          ##= data.geo.map(x=>parseFloat(x)).join(', ') ##
         </a>
       </dd>
       <dt>Factors Affecting Water</dt>
-      <dd><%= data.factorsAffectingWater || 'N/A' %></dd>
+      <dd>##= data.factorsAffectingWater || 'N/A' ##</dd>
       <dt>Type</dt>
-      <dd><%= data.type || 'N/A' %></dd>
+      <dd>##= data.type || 'N/A' ##</dd>
       <dt>Updated</dt>
-      <dd><%= (new Date(data.grade_updated)).toLocaleString() %></dd>
+      <dd>##= (new Date(data.grade_updated)).toLocaleString() ##</dd>
       <dt>Grade Note</dt>
-      <dd><%= data.grade_node || 'N/A' %></dd>
+      <dd>##= data.grade_node || 'N/A' ##</dd>
       <dt>Dry Weather Grade</dt>
-      <dd><%= data.dry_grade || 'N/A' %></dd>
+      <dd>##= data.dry_grade || 'N/A' ##</dd>
       <dt>Wet Weather Grade</dt>
-      <dd><%= data.wet_grade || 'N/A' %></dd>
+      <dd>##= data.wet_grade || 'N/A' ##</dd>
     </dl>
   </body>
 </html>

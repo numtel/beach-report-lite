@@ -51,7 +51,7 @@
               <td><label for="lat">Latitude</label></td>
               <td>
                 <input id="lat" name="lat" required type="number" min="-90" max="90" step="0.1"
-                  value="<%= lat %>"
+                  value="##= lat ##"
                   onchange="event.target.form.lat_sel.value = ''" />
                 <button type="button" onclick="setLatToMe(event.target.form)">Use my location</button>
               </td>
@@ -60,10 +60,10 @@
               <td><label for="range">Range (miles)</label></td>
               <td>
                 <input id="range_val" required type="number" min="5" max="100" step="1"
-                  value="<%= range %>"
+                  value="##= range ##"
                   onchange="event.target.form.range.value = event.target.value" />
                 <input id="range" name="range" required type="range" min="5" max="100" step="1"
-                  value="<%= range %>"
+                  value="##= range ##"
                   onchange="event.target.form.range_val.value = event.target.value" />
               </td>
             </tr>
@@ -95,7 +95,7 @@
         }
       </script>
     </form>
-    <% if(data) { %>
+    ##if data ##
       <article>
         <h2>Search Results</h2>
         <table>
@@ -109,27 +109,28 @@
             </tr>
           </thead>
           <tbody>
-            <% if(data.length === 0) { %>
+            ##if data.length === 0 ##
               <tr>
                 <td colspan="5" class="no-data">
                   No results for this query.
                 </td>
               </tr>
-            <% } %>
-            <% for(let i=0; i<data.length; i++) { const loc = data[i]; %>
-              <tr>
-                <td><a href="detail/<%= loc.id %>"><%= loc.title %></a></td>
-                <td><%= loc.city %></td>
-                <td><%= loc.dry_grade %></td>
-                <td><%= loc.wet_grade %></td>
-                <td><%= loc.updated_ago %></td>
-              </tr>
-            <% } %>
+            ##else##
+              ##each data as loc ##
+                <tr>
+                  <td><a href="detail/##= loc.id ##">##= loc.title ##</a></td>
+                  <td>##= loc.city ##</td>
+                  <td>##= loc.dry_grade ##</td>
+                  <td>##= loc.wet_grade ##</td>
+                  <td>##= loc.updated_ago ##</td>
+                </tr>
+              ##/##
+            ##/##
           </tbody>
         </table>
       </article>
       <hr>
       <p>Data provided by <a href="https://beachreportcard.org">BeachReportCard.org</a></p>
-    <% } %>
+    ##/##
   </body>
 </html>
