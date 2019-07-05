@@ -116,7 +116,7 @@
                 </td>
               </tr>
             <% } %>
-            <% for(let i=0; i<data.length; i++) { const loc = data[i]; %>
+            <% for(let loc of data) { %>
               <tr>
                 <td><a href="detail/<%= loc.id %>"><%= loc.title %></a></td>
                 <td><%= loc.city %></td>
