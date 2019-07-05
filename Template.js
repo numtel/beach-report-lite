@@ -28,6 +28,10 @@ module.exports = class Template {
     this.parsed += 'return __out;';
   }
   render(ctx) {
+    // Although this looks like it would be slower than building this function
+    // in the constructor with predefined context keys, the Javascript engine
+    // caches the result so that subsequent calls are just as fast as if the
+    // function was created and stored for later use
     return (new Function(...Object.keys(ctx), '__escape', this.parsed))(...Object.values(ctx), htmlEscape);
   }
 }
