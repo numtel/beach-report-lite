@@ -42,6 +42,10 @@ module.exports = class BeachReportServer extends http.Server {
     if(typeof query.lat === 'string' && typeof query.range === 'string') {
       lat = parseFloat(query.lat);
       range = parseFloat(query.range);
+
+      if(isNaN(lat) || isNaN(range))
+        throw new ReqError(400, 'lat and range must be numbers');
+
       // Convert miles to degrees latitude
       data = displayGrades(await this.dataPromise, lat, range / 69);
     }
