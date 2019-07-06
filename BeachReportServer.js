@@ -25,10 +25,10 @@ module.exports = class BeachReportServer extends http.Server {
     super(requestListener);
     this.enforceHttps = enforceHttps;
     this.dataPromise = null;
-    this.routes = [
-      [ /^\/$/, this.index ],
-      [ /^\/detail\/([\d]+)$/, this.detail ],
-    ];
+    this.routes = {
+      '/': { GET: this.index },
+      '/detail/([\\d]+)': { GET: this.detail },
+    };
 
     this.load();
   }
@@ -50,6 +50,8 @@ module.exports = class BeachReportServer extends http.Server {
   async detail(req, urlMatch) {
     const data = await this.dataPromise;
     const id = parseInt(urlMatch[1], 10);
+
+    // Should never see this error due to the route path regex being digit only
     if(isNaN(id))
       throw new ReqError(400, 'Invalid Location ID');
 
@@ -72,13 +74,14 @@ async function requestListener(req, res) {
   const qsStart = req.url.indexOf('?');
   const urlWithoutQs = qsStart === -1 ? req.url : req.url.substr(0, qsStart);
 
-  for(let i = 0; i<this.routes.length; i++) {
-    const urlMatch = urlWithoutQs.match(this.routes[i][0]);
-    if(!urlMatch) continue;
+  const routePaths = Object.keys(this.routes);
+  for(let i = 0; i<routePaths.length; i++) {
+    const urlMatch = urlWithoutQs.match(new RegExp('^' + routePaths[i] + '$'));
+    if(urlMatch === null || !(req.method in this.routes[routePaths[i]])) continue;
 
     let result;
     try {
-      result = await this.routes[i][1].call(this, req, urlMatch);
+      result = await this.routes[routePaths[i]][req.method].call(this, req, urlMatch);
     } catch(error) {
       if(error instanceof ReqError) {
         res.writeHead(error.httpCode, {'Content-Type': 'text/plain'});
