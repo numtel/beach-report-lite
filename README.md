@@ -6,7 +6,7 @@ Lightweight version of [beachreportcard.org](https://beachreportcard.org)
 
 [Tweeted as "Modern Web Development"](https://twitter.com/jaredpalmer/status/1142800704580591617), the overwhelming complexity of dependencies required for a web site built today is represented in stacked rafts:
 
-![Multi-stacked rafts](D5RhbHThY12vWwX0.jpg)
+![Multi-stacked rafts](docs/stack.jpg)
 
 Things were so simple when writing old PHP sites and then uploading the `.php` files to shared hosting but persisting data between requests requires adding another application to the stack like Redis or Memcache.
 

@@ -3,8 +3,8 @@ const Template = require('./Template');
 
 // Instantiate outside of server constructor for parser errors on init
 const VIEWS = {
-  index: new Template('index.html'),
-  detail: new Template('detail.html'),
+  index: new Template('views/index.html'),
+  detail: new Template('views/detail.html'),
 };
 
 class ReqError extends Error {
