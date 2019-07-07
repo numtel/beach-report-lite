@@ -1,6 +1,23 @@
 # Beach Report Lite
 
+[![Build Status](https://travis-ci.org/numtel/beach-report-lite.svg?branch=master)](https://travis-ci.org/numtel/beach-report-lite)
+
 Lightweight version of [beachreportcard.org](https://beachreportcard.org)
+
+## Installation
+
+```sh
+$ git clone https://github.com/numtel/beach-report-lite.git
+$ cd beach-report-lite
+
+# "npm install" not required since there's no dependencies!
+
+# Serve on port 3000
+$ npm start
+
+# Run test suite
+$ npm test
+```
 
 ## Design Philosophy
 
