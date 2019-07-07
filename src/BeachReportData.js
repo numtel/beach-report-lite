@@ -9,14 +9,17 @@ const validGrade = grade => typeof grade === 'string'
                          && grade.match(/^[A-F][+-]?$/);
 
 module.exports = class BeachReportData {
-  // @param refreshInterval  Integer
+  // @param refreshInterval     Integer
   //    Time in milliseconds before data is considered stale and should be reloaded
   //    Pass falsy to never refresh data after initialization
-  // @param apiUrl           String
+  // @param apiUrl              String
   //    API URL to obtain JSON dataset, defaults to beachreportcard.org
   //    Pass custom value for test server
-  constructor(refreshInterval, apiUrl) {
+  // @param rejectUnauthorized  Boolean
+  //    Pass false to allow SSL errors when testing
+  constructor(refreshInterval, apiUrl, rejectUnauthorized = true) {
     this.refreshInterval = refreshInterval;
+    this.rejectUnauthorized = rejectUnauthorized;
     this.apiUrl = apiUrl || 'https://admin.beachreportcard.org/api/locations/';
 
     this[LAST_REFRESH] = null;
@@ -33,7 +36,7 @@ module.exports = class BeachReportData {
 
     // Fetch new dataset from API
     this[LAST_REFRESH] = Date.now();
-    return this[DATA] = fetchJson(this.apiUrl).then(locations => {
+    return this[DATA] = fetchJson(this.apiUrl, this.rejectUnauthorized).then(locations => {
       // Remove data points that don't have the proper key
       locations = locations.filter(x => typeof sortKey(x) === 'number');
       // Don't worry, none should have the exact same latitude
@@ -65,9 +68,9 @@ module.exports = class BeachReportData {
 }
 
 // Adapted from Node.js http documentation
-function fetchJson(url) {
+function fetchJson(url, rejectUnauthorized) {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    https.get(url, { rejectUnauthorized }, (res) => {
       const contentType = res.headers['content-type'];
 
       let error;
@@ -92,12 +95,12 @@ function fetchJson(url) {
         try {
           const parsedData = JSON.parse(rawData);
           resolve(parsedData);
-        } catch (e) {
-          reject(e.message);
+        } catch (error) {
+          reject(error);
         }
       });
-    }).on('error', (e) => {
-      reject(e);
+    }).on('error', (error) => {
+      reject(error);
     });
   });
 }

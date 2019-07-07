@@ -1,5 +1,7 @@
 const http = require('http');
 
+// Minimal replacement for Express.js
+
 module.exports = class HTMLServer extends http.Server {
   // @param routes        Object<Object<Function>>
   //    Primary Keys map to route path regex

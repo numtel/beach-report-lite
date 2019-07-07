@@ -35,11 +35,6 @@ module.exports = class BeachReportServer extends HTMLServer {
       '/detail/([\\d]+)': {
         async GET(req, urlMatch) {
           const id = parseInt(urlMatch[1], 10);
-
-          // Should never see this error due to the route path regex being digit only
-          if(isNaN(id))
-            throw new HTMLServer.ReqError(400, 'Invalid Location ID');
-
           const data = await provider.fetch();
           const loc = data.find(loc => loc._source.id === id);
           if(!loc)
