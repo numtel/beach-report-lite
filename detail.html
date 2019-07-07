@@ -13,7 +13,7 @@
     </style>
   <body>
     <h1><%= data.title %></h1>
-    <p><%= data.description %></p>
+    <p><%= data.description || '' %></p>
     <dl>
       <dt>Address</dt>
       <dd><%= [data.address, data.city, data.state, data.zip].filter(x=>!!x).join(', ') %></dd>
