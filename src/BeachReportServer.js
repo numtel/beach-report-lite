@@ -90,7 +90,7 @@ function requestListener(routes, enforceHttps) {
           res.writeHead(error.httpCode, {'Content-Type': 'text/plain'});
           res.end(error.message);
         } else {
-          console.error(error);
+          this.emit('error', error);
           res.writeHead(500, {'Content-Type': 'text/plain'});
           res.end('Internal Server Error');
         }
