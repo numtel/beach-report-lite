@@ -19,6 +19,14 @@ $ npm start
 $ npm test
 ```
 
+### Configuration
+
+Environment Variable | Default | Description
+---------------------|---------|------------------
+`PORT`               | `3000`  | Listen for HTTP connections on this port
+`ENFORCE_HTTPS`      | `false` | Redirect 302 to HTTPS based on `x-forwarded-proto` header
+`REFRESH_INTERVAL`   | `3*60*60*1000` | Cache API data for specified duration (default 3 hours)
+
 ## Design Philosophy
 
 [Tweeted as "Modern Web Development"](https://twitter.com/jaredpalmer/status/1142800704580591617), the overwhelming complexity of dependencies required for a web site built today is represented in stacked rafts:
@@ -35,7 +43,9 @@ This is not a prescription that all applications should be written this way, onl
 
 #### No left-pad surpises
 
-Standard packages such as Express, EJS, Request have been replaced with custom versions that only require built-in Node.js modules. Other functions that could be adapted from StackOverflow answers or simple packages have been included inline with the source code.
+Javascript, and by extention Node.js, have frequently been criticised for their lack of standard library.
+
+In this project, standard packages such as Express, EJS, Request, and Nodeunit have been replaced with custom classes and functions that only require built-in Node.js modules.
 
 ### Front-end
 
