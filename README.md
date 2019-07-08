@@ -1,8 +1,14 @@
-# Beach Report Lite
+# Beach Report Lite [![Build Status](https://travis-ci.org/numtel/beach-report-lite.svg?branch=master)](https://travis-ci.org/numtel/beach-report-lite)
 
-[![Build Status](https://travis-ci.org/numtel/beach-report-lite.svg?branch=master)](https://travis-ci.org/numtel/beach-report-lite)
+* Example Node.js Application without 3rd-party dependencies
+* Lightweight version of [beachreportcard.org](https://beachreportcard.org)
+* Demo site [hosted on Heroku](https://beach-report-lite.herokuapp.com/)
 
-Lightweight version of [beachreportcard.org](https://beachreportcard.org)
+<p align="center">
+  <a href="https://beach-report-lite.herokuapp.com/">
+    <img src="docs/index.png" alt="Index page screenshot">
+  </a>
+</p>
 
 ## Installation
 
@@ -29,15 +35,21 @@ Environment Variable | Default | Description
 
 ## Design Philosophy
 
-[Tweeted as "Modern Web Development"](https://twitter.com/jaredpalmer/status/1142800704580591617), the overwhelming complexity of dependencies required for a web site built today is represented in stacked rafts:
+<p align="center">
+  <a href="https://twitter.com/jaredpalmer/status/1142800704580591617">
+    <img src="docs/stack.jpg" alt="Multi-stacked rafts">
+  </a>
+</p>
 
-![Multi-stacked rafts](docs/stack.jpg)
+Tweeted as ["Modern Web Development"](https://twitter.com/jaredpalmer/status/1142800704580591617), many web developers have felt like this adventurous captain piloting a stack of rafts through white water.
 
-Things were so simple when writing old PHP sites and then uploading the `.php` files to shared hosting but persisting data between requests requires adding another application to the stack like Redis or Memcache.
+Things were so simple when writing PHP. Upload some `.php` files to a shared hosting account then browse. Persistant data between requests would take another application, like Redis or Memcache, on the stack though.
 
-I started to wonder: what does it take to write a dynamic website using Node.js without any dependencies?
+I wonder, what does it take to write a dynamic website using Node.js without any dependencies?
 
-This is not a prescription that all applications should be written this way, only to serve as a spark for the imagination.
+Many websites built today link with a vast web of modules in order to make the developer's experience as high-level as possible. Writing succinct, easy-to-debug code without relying on a tall stack of packages is still possible.
+
+This is not a prescription that all applications should be written this way, but to serve as a spark for the imagination.
 
 ### Back-end
 
@@ -45,7 +57,7 @@ This is not a prescription that all applications should be written this way, onl
 
 Javascript, and by extention Node.js, have frequently been criticised for their lack of standard library.
 
-In this project, standard packages such as Express, EJS, Request, and Nodeunit have been replaced with custom classes and functions that only require built-in Node.js modules.
+In this project, regularly-used packages such as Express, EJS, Request, and Nodeunit have been replaced with custom classes and functions that only require built-in Node.js modules.
 
 ### Front-end
 
@@ -96,3 +108,7 @@ The second example is not used in this application but it shows a very powerful 
 ```
 
 The form submits and the page reloads with the results. The user can press the back button and see their previous search. A bookmark of the search results can be made to come back to the same page at a later time. These are all standard browser behaviors that have always existed and we should embrace them without recreating them using complicated Javascript.
+
+## License
+
+MIT
