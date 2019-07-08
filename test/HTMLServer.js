@@ -4,6 +4,7 @@ const http = require('http');
 const HTMLServer = require('../src/HTMLServer');
 
 const TEST_500_MSG = 'test_500';
+const TEST_400_MSG = 'test_400';
 
 function testRoute(url, enforceHttps = false, fakeHttpsRequest = false) {
   return new Promise((resolve, reject) => {
@@ -14,6 +15,10 @@ function testRoute(url, enforceHttps = false, fakeHttpsRequest = false) {
           switch(urlMatch[1]) {
             case '500':
               throw new Error(TEST_500_MSG);
+            case '400':
+              throw new HTMLServer.ReqError(400, TEST_400_MSG);
+            case '111':
+              return JSON.stringify(HTMLServer.parseQuery(req.url));
             default:
               return urlMatch[1];
           }
@@ -39,6 +44,7 @@ function testRoute(url, enforceHttps = false, fakeHttpsRequest = false) {
   });
 }
 
+// Not found test case
 (async function() {
   const result = await testRoute('/404');
   assert.strictEqual(result.res.statusCode, 404);
@@ -46,6 +52,7 @@ function testRoute(url, enforceHttps = false, fakeHttpsRequest = false) {
   assert.strictEqual(result.errors.length, 0);
 })();
 
+// Internal server error test case
 (async function() {
   const result = await testRoute('/hello/500');
   assert.strictEqual(result.res.statusCode, 500);
@@ -54,12 +61,32 @@ function testRoute(url, enforceHttps = false, fakeHttpsRequest = false) {
   assert.strictEqual(result.errors[0].message, TEST_500_MSG);
 })();
 
+// HTMLServer.ReqError test case
+(async function() {
+  const result = await testRoute('/hello/400');
+  assert.strictEqual(result.res.statusCode, 400);
+  assert.strictEqual(result.res.headers['content-type'], 'text/plain');
+  assert.strictEqual(result.rawData, TEST_400_MSG);
+  assert.strictEqual(result.errors.length, 0);
+})();
+
+// General success
 (async function() {
   const result = await testRoute('/hello/1234');
   assert.strictEqual(result.res.statusCode, 200);
   assert.strictEqual(result.res.headers['content-type'], 'text/html');
   assert.strictEqual(result.errors.length, 0);
   assert.strictEqual(result.rawData, '1234');
+})();
+
+// HTMLServer.parseQuery test case
+(async function() {
+  const result = await testRoute('/hello/111?horse=cow&cheese=wiz');
+  assert.strictEqual(result.res.statusCode, 200);
+  // Always returns HTML MIME on success
+  assert.strictEqual(result.res.headers['content-type'], 'text/html');
+  assert.strictEqual(result.errors.length, 0);
+  assert.strictEqual(result.rawData, JSON.stringify({ horse: 'cow', cheese: 'wiz' }));
 })();
 
 // Server redirects to HTTPS, send standard HTTP request
@@ -69,7 +96,7 @@ function testRoute(url, enforceHttps = false, fakeHttpsRequest = false) {
   assert(result.res.headers['location'].match(/^https:/));
 })();
 
-// Server redirects to HTTPS, send request with HTTPS forward header
+// Send request with HTTPS forward header, no redirect issued
 (async function() {
   const result = await testRoute('/hello/1234', true, true);
   // Do not need to compare everything since it's tested above

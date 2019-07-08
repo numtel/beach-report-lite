@@ -17,7 +17,7 @@ function testRoute(url) {
       let tplFilename, tplCtx;
 
       // A template should render before the request returns
-      templater.once('render', function(filename, ctx) {
+      templater.on('render', function(filename, ctx) {
         tplFilename = filename;
         tplCtx = ctx;
       });
@@ -69,14 +69,16 @@ function testRoute(url) {
 
 // Search result error test case
 (async function(){
-  let result;
-  try {
-    result = await testRoute('/?lat=5&range=bad');
-  } catch(error) {
-    assert.strictEqual(error.res.statusCode, 400);
-    assert.strictEqual(error.rawData, 'lat and range must be numbers');
+  for(let url of [ '/?lat=5&range=bad', '/?lat=bad&range=20', ]) {
+    let result;
+    try {
+      result = await testRoute(url);
+    } catch(error) {
+      assert.strictEqual(error.res.statusCode, 400);
+      assert.strictEqual(error.rawData, 'lat and range must be numbers');
+    }
+    assert(!result, 'Should have thrown')
   }
-  assert(!result, 'Should have thrown')
 })();
 
 // Detail page test case
