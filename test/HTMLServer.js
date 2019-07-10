@@ -11,14 +11,14 @@ function testRoute(url, enforceHttps = false, fakeHttpsRequest = false) {
     const errors = [];
     const app = new HTMLServer({
       '/hello/([\\d]+)': {
-        async GET(req, urlMatch) {
+        async GET(req, urlMatch, parsedUrl) {
           switch(urlMatch[1]) {
             case '500':
               throw new Error(TEST_500_MSG);
             case '400':
               throw new HTMLServer.ReqError(400, TEST_400_MSG);
             case '111':
-              return JSON.stringify(HTMLServer.parseQuery(req.url));
+              return JSON.stringify(parsedUrl.query);
             default:
               return urlMatch[1];
           }
@@ -79,7 +79,7 @@ function testRoute(url, enforceHttps = false, fakeHttpsRequest = false) {
   assert.strictEqual(result.rawData, '1234');
 })();
 
-// HTMLServer.parseQuery test case
+// Query string parse test case
 (async function() {
   const result = await testRoute('/hello/111?horse=cow&cheese=wiz');
   assert.strictEqual(result.res.statusCode, 200);

@@ -1,4 +1,5 @@
 const http = require('http');
+const url = require('url');
 
 // Minimal replacement for Express.js
 
@@ -17,17 +18,15 @@ module.exports = class HTMLServer extends http.Server {
         return;
       }
 
-      const qsStart = req.url.indexOf('?');
-      const urlWithoutQs = qsStart === -1 ? req.url : req.url.substr(0, qsStart);
-
+      const parsedUrl = url.parse(req.url, true);
       const routePaths = Object.keys(routes);
       for(let i = 0; i<routePaths.length; i++) {
-        const urlMatch = urlWithoutQs.match(new RegExp('^' + routePaths[i] + '$'));
+        const urlMatch = parsedUrl.pathname.match(new RegExp('^' + routePaths[i] + '$'));
         if(urlMatch === null || !(req.method in routes[routePaths[i]])) continue;
 
         let result;
         try {
-          result = await routes[routePaths[i]][req.method].call(this, req, urlMatch);
+          result = await routes[routePaths[i]][req.method].call(this, req, urlMatch, parsedUrl);
         } catch(error) {
           if(error instanceof ReqError) {
             res.writeHead(error.httpCode, {'Content-Type': 'text/plain'});
@@ -47,23 +46,6 @@ module.exports = class HTMLServer extends http.Server {
       res.end('Not Found');
     });
   }
-}
-
-// Adapted from https://stackoverflow.com/a/13419367
-module.exports.parseQuery = function parseQuery(url) {
-  const query = {};
-
-  const qsStart = url.indexOf('?');
-  if(qsStart === -1)
-    return query;
-  const queryString = url.substr(qsStart + 1);
-
-  const pairs = queryString.split('&');
-  for(let i = 0; i < pairs.length; i++) {
-    let pair = pairs[i].split('=', 2);
-    query[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1] || '');
-  }
-  return query;
 }
 
 class ReqError extends Error {

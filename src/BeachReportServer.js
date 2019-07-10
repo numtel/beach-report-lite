@@ -15,13 +15,12 @@ module.exports = class BeachReportServer extends HTMLServer {
 
     super({
       '/': {
-        async GET(req) {
-          const query = HTMLServer.parseQuery(req.url);
+        async GET(req, urlMatch, parsedUrl) {
           let lat, range = 20, data;
 
-          if(typeof query.lat === 'string' && typeof query.range === 'string') {
-            lat = parseFloat(query.lat);
-            range = parseFloat(query.range);
+          if(typeof parsedUrl.query.lat === 'string' && typeof parsedUrl.query.range === 'string') {
+            lat = parseFloat(parsedUrl.query.lat);
+            range = parseFloat(parsedUrl.query.range);
 
             if(isNaN(lat) || isNaN(range))
               throw new HTMLServer.ReqError(400, 'lat and range must be numbers');
