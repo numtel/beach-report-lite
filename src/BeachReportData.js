@@ -1,4 +1,6 @@
+const http = require('http');
 const https = require('https');
+const url = require('url');
 
 const DATA = Symbol('data');
 const LAST_REFRESH = Symbol('last_refresh');
@@ -15,11 +17,8 @@ module.exports = class BeachReportData {
   // @param apiUrl              String
   //    API URL to obtain JSON dataset, defaults to beachreportcard.org
   //    Pass custom value for test server
-  // @param rejectUnauthorized  Boolean
-  //    Pass false to allow SSL errors when testing
-  constructor(refreshInterval, apiUrl, rejectUnauthorized = true) {
+  constructor(refreshInterval, apiUrl) {
     this.refreshInterval = refreshInterval;
-    this.rejectUnauthorized = rejectUnauthorized;
     this.apiUrl = apiUrl || 'https://admin.beachreportcard.org/api/locations/';
 
     this[LAST_REFRESH] = null;
@@ -68,9 +67,9 @@ module.exports = class BeachReportData {
 }
 
 // Adapted from Node.js http documentation
-function fetchJson(url, rejectUnauthorized) {
+function fetchJson(jsonUrl) {
   return new Promise((resolve, reject) => {
-    https.get(url, { rejectUnauthorized }, (res) => {
+    (url.parse(jsonUrl).protocol === 'https:' ? https : http).get(jsonUrl, (res) => {
       const contentType = res.headers['content-type'];
 
       let error;

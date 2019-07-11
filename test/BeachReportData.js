@@ -11,8 +11,7 @@ function testProvider(refreshInterval, locationCount, handler) {
     apiServer.on('listening', async function() {
       const provider = new BeachReportData(
         refreshInterval,
-        'https://localhost:' + apiServer.address().port,
-        false, // Allow invalid certificate
+        'http://localhost:' + apiServer.address().port,
       );
       const opts = {
         fetchCount: 0,
