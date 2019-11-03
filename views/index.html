@@ -53,7 +53,7 @@
                 <input id="lat" name="lat" required type="number" min="-90" max="90" step="0.1"
                   value="<%= lat %>"
                   onchange="event.target.form.lat_sel.value = ''" />
-                <button type="button" onclick="setLatToMe(event.target.form)">Use my location</button>
+                <button type="button" class="autolocate">Use my location</button>
               </td>
             </tr>
             <tr>
@@ -81,18 +81,20 @@
         // Set select value after form submission
         // since setting the element's value attribute does not change the
         // displayed value
-        document.forms[0].lat_sel.value = document.forms[0].lat.value;
-        if(document.forms[0].lat_sel.value === '') {
+        const form = document.currentScript.parentNode;
+        form.elements.lat_sel.value = form.elements.lat.value;
+        if(form.elements.lat_sel.value === '') {
           // There was no match, is custom latitude
-          document.forms[0].lat_sel.value = '';
+          form.elements.lat_sel.value = '';
         }
 
-        function setLatToMe(form) {
+        form.querySelector('.autolocate').addEventListener('click', function() {
           navigator.geolocation.getCurrentPosition(function(position) {
-            form.lat.value = Math.round(position.coords.latitude * 10) / 10;
-            form.lat_sel.value = '';
+            form.elements.lat.value = Math.round(position.coords.latitude * 10) / 10;
+            form.elements.lat_sel.value = '';
           });
-        }
+        }, false);
+        //# sourceURL=searchForm.js
       </script>
     </form>
     <% if(data) { %>
